@@ -1,5 +1,6 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
+import axios from 'axios';
 import api, { currentEOSAccount } from './api/scatter';
 
 Vue.use(Vuex);
@@ -13,6 +14,7 @@ export default new Vuex.Store({
     scatterAccount: null,
     balances: {
       eos: '... EOS',
+      coin: '... 牛牛币',
     },
     isScatterLoggingIn: false,
     isLoadingData: false,
@@ -63,8 +65,11 @@ export default new Vuex.Store({
           api.getBalancesByContract({ symbol: 'eos', accountName: name }),
         ]);
         const eos = balances[0][0] || '0 EOS';
+        const coin = (await axios.get(`http://47.106.69.165:8989/api/getplayer/` + name)).data.result.coins;
         commit('setMyBalance', { symbol: 'eos', balance: eos });
+        commit('setMyBalance', { symbol: 'coin', balance: coin });
       }
+      
     },
     async suggestNetworkAsync() {
       return api.suggestNetworkAsync();

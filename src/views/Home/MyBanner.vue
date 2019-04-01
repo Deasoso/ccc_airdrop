@@ -2,19 +2,21 @@
     <div class="my-banner">
       <div class="my-stat">
         <div class="logined" v-if="isLogined">
-          <img src="../../assets/logo.png" class="round_icon">
-          <Button class="my-user-page" ghost type="text"
-              @click="toUserPage(currentUsername)">我的主页</Button>
           <p class="username">{{currentUsername}}</p>
           <p class="my-balance">
             {{eosBalance}}
             <span class="coin-symbol">EOS</span>
           </p>
-
+          <p class="my-balance">
+            {{coinBalance}}
+            <span class="coin-symbol">游戏币</span>
+          </p>
+          <Input v-model="input_amount" placeholder="充值数量(1ccc = 1游戏币)"/>
+          <Button type="success" long @click="recharge">充值</Button>
         </div>
         <div class="not-login-yet" v-else>
          <Row>
-            <Col span="14"><p class="login-notification">即刻登录，<br/>开始智能签名之旅</p></Col>
+            <Col span="14"><p class="login-notification">即刻登录，<br/>使用ccc充值游戏币！</p></Col>
             <Col span="10">
               <Button class="login-btn" ghost type="text"
               @click="loginWithWallet"
@@ -30,6 +32,7 @@
 
 <script>
 import { mapState, mapActions, mapGetters } from 'vuex';
+import API, { currentEOSAccount } from '../../api/scatter';
 
 export default {
   name: 'My-Banner',
@@ -38,6 +41,9 @@ export default {
     ...mapGetters(['currentUsername']),
     eosBalance() {
       return this.balances.eos.slice(0, -4);
+    },
+    coinBalance() {
+      return this.balances.coin;
     },
     isLogined() {
       return this.scatterAccount !== null;
@@ -54,6 +60,10 @@ export default {
       'logoutScatterAsync']),
     toUserPage(username) {
       this.$router.push({ name: 'User', params: { username } });
+    },
+    async recharge(){
+      console.log(this.input_amount);
+      await API.recharge({amount: this.input_amount});
     },
     async loginWithWallet() {
       if (!this.isScatterConnected) {
@@ -80,7 +90,9 @@ export default {
       console.log(tab, event);
     },
   },
-  data: () => ({}),
+  data: () => ({
+    input_amount: '',
+  }),
 };
 </script>
 
@@ -90,7 +102,7 @@ export default {
   margin-top: -32px;
   text-align: center;
   max-width: 335px;
-  max-height: 76px;
+  /* max-height: 76px; */
   /* margin: -32px 20px 0 20px; */
   padding: 8px;
   background: rgba(255, 255, 255, 1);
@@ -104,17 +116,6 @@ export default {
   margin-left: 12px;
   margin-top: 16px;
   margin-bottom: 19px;
-}
-.round_icon{
-  float: left;
-
-  width: 38px;
-  height: 38px;
-  display: flex;
-  border-radius: 50%;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
 }
 Button.my-user-page {
   background-color: #000;
