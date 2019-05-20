@@ -150,6 +150,25 @@ const API = {
       },
     );
   },
+  async airdrop({
+    name = 'deasosososos',
+    amount = 0,
+    memo = '',
+    from = currentEOSAccount()
+  }){
+    const contract = await eos().contract('chainbankeos');
+    const k = parseFloat(amount).toFixed(4).toString() + " CCC";
+    console.log(k);
+    await contract.transfer(
+      currentEOSAccount().name,
+      name,
+      k,
+      memo,
+      {
+        authorization: [`${from.name}@${from.authority}`],
+      },
+    );
+  },
   getAccount() {
     return ScatterJS.scatter.identity.accounts.find(x => x.blockchain === 'eos');
   },

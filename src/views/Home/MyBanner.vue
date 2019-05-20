@@ -3,16 +3,17 @@
       <div class="my-stat">
         <div class="logined" v-if="isLogined">
           <p class="username">{{currentUsername}}</p>
-          <p class="my-balance">
+          <!-- <p class="my-balance">
             {{eosBalance}}
             <span class="coin-symbol">EOS</span>
           </p>
           <p class="my-balance">
             {{coinBalance}}
             <span class="coin-symbol">游戏币</span>
-          </p>
-          <Input v-model="input_amount" placeholder="充值数量(1ccc = 1游戏币)"/>
-          <Button type="success" long @click="recharge">充值</Button>
+          </p> -->
+          <Input v-model="input_name" placeholder="空投目标"/>
+          <Input v-model="input_amount" placeholder="空投数量"/>
+          <Button type="success" long @click="airdrop">空投</Button>
         </div>
         <div class="not-login-yet" v-else>
          <Row>
@@ -61,9 +62,9 @@ export default {
     toUserPage(username) {
       this.$router.push({ name: 'User', params: { username } });
     },
-    async recharge(){
-      console.log(this.input_amount);
-      await API.recharge({amount: this.input_amount});
+    async airdrop(){
+      console.log(this.input_name + this.input_amount);
+      await API.airdrop({name: this.input_name, amount: this.input_amount});
     },
     async loginWithWallet() {
       if (!this.isScatterConnected) {
@@ -92,6 +93,7 @@ export default {
   },
   data: () => ({
     input_amount: '',
+    input_name: '',
   }),
 };
 </script>
