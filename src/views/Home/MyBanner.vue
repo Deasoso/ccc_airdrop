@@ -17,7 +17,7 @@
         </div>
         <div class="not-login-yet" v-else>
          <Row>
-            <Col span="14"><p class="login-notification">即刻登录，<br/>使用ccc充值游戏币！</p></Col>
+            <Col span="14"><p class="login-notification">即刻登录，<br/>空投ccc！</p></Col>
             <Col span="10">
               <Button class="login-btn" ghost type="text"
               @click="loginWithWallet"
