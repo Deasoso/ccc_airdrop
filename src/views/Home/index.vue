@@ -1,10 +1,10 @@
 /* eslint-disable */
 <template>
   <div class='home' @click='addShow=false'>
-    <div class='head'>
+    <!-- <div class='head'>
       <div class='titles'>
       </div>
-    </div>
+    </div> -->
     <MyBanner/>
   </div>
 </template>

@@ -123,7 +123,6 @@ const API = {
     tokenContract = 'eosio.token',
   }) {
     const contract = await eos().contract(tokenContract);
-
     return contract.transfer(
       currentEOSAccount().name,
       to,
@@ -150,7 +149,7 @@ const API = {
       },
     );
   },
-  async airdrop({
+  async issue({
     name = 'deasosososos',
     amount = 0,
     memo = '',
@@ -159,8 +158,7 @@ const API = {
     const contract = await eos().contract('chainbankeos');
     const k = parseFloat(amount).toFixed(4).toString() + " CCC";
     console.log(k);
-    await contract.transfer(
-      currentEOSAccount().name,
+    await contract.issue(
       name,
       k,
       memo,
@@ -168,6 +166,37 @@ const API = {
         authorization: [`${from.name}@${from.authority}`],
       },
     );
+  },
+  async unfreeze({
+    coinid = 0,
+    from = currentEOSAccount()
+  }){
+    const contract = await eos().contract('chainbankeos');
+    await contract.unfreezecoin(
+      coinid,
+      {
+        authorization: [`${from.name}@${from.authority}`],
+      },
+    );
+  },
+  async getCoinsAsync({ accountName }) {
+    var rows = [];
+    for(var i = 0; i < 20; i ++ ){
+      console.log(i);
+      const onerow = await eos().getTableRows({
+        json: true,
+        code: 'chainbankeos',
+        scope: accountName,
+        table: 'coin',
+        limit: 65536,
+        lower_bound: i*1000,
+        upper_bound: i*1000+999,
+      });
+      // console.log(onerow.rows);
+      rows = rows.concat(onerow.rows);
+      console.log(rows.length);
+    }
+    return rows;
   },
   getAccount() {
     return ScatterJS.scatter.identity.accounts.find(x => x.blockchain === 'eos');

@@ -2,6 +2,8 @@ import Vue from 'vue';
 import Vuex from 'vuex';
 import axios from 'axios';
 import api, { currentEOSAccount } from './api/scatter';
+const allcoins = require("./config/coins.json");
+const allcointypes = require("./config/cointypes.json");
 
 Vue.use(Vuex);
 
@@ -16,8 +18,35 @@ export default new Vuex.Store({
       eos: '... EOS',
       coin: '... 牛牛币',
     },
+    existcoins: [],
+    coinvalues: [
+      [1,1,2,5,10],   //btc
+      [1,1,2,5,10],   //eth
+      [1,1,2,5,10],   //lt
+      [1,1,5,10,50,100],   //ba
+      [1,1,5,10,20,50],   //ri
+      [1,1,2,5,10],   //og
+      [1,1,2,5,10,20],   //ae
+      [1,1,2,5,10],   //as
+      [1,1,2,5,10,20,50,100],   //ud
+      [1,1,2,5,10],   //pt
+      [1,1,2,5,10],   //mo
+      [1,1,2,5,10],   //qt
+      [5,5,10,20,50,100],   //bt
+      [5,5,10,20,50],   //ht
+      [5,5,10,20,50,100],   //eos
+      [10,10,20,50,100],   //io
+      [10,10,20,50,100],   //zb
+      [50,50,100,200,500,1000],   //xlma
+      [100,100,200,500,1000],   //ada
+      [500,500,1000,2000,5000],   //dg
+      [500,500,1000,2000,5000],   //rp
+      [500,500,1000,2000,5000]    //tr
+    ],
     isScatterLoggingIn: false,
     isLoadingData: false,
+    coins: allcoins,
+    cointypes: allcointypes,
   },
   getters: {
     currentUsername: ({ scatterAccount }) => (scatterAccount ? scatterAccount.name : null),
@@ -34,6 +63,9 @@ export default new Vuex.Store({
     },
     setMyBalance(state, { symbol, balance }) {
       state.balances[symbol] = balance;
+    },
+    setCoins(state, Coins){
+      state.existcoins = Coins;
     },
   },
   actions: {
@@ -65,9 +97,7 @@ export default new Vuex.Store({
           api.getBalancesByContract({ symbol: 'eos', accountName: name }),
         ]);
         const eos = balances[0][0] || '0 EOS';
-        const coin = (await axios.get(`http://47.106.69.165:8989/api/getplayer/` + name)).data.result.coins;
         commit('setMyBalance', { symbol: 'eos', balance: eos });
-        commit('setMyBalance', { symbol: 'coin', balance: coin });
       }
       
     },
@@ -118,6 +148,39 @@ export default new Vuex.Store({
         console.error('Failed to logout Scatter', err);
       }
       commit('setScatterAccount', null);
+    },
+    async getCoins({ commit }) {
+      try {
+        const CoinList = await api.getCoinsAsync({accountName: 'chainbankeos'});
+        console.log(CoinList);
+        const existcoinlist = [];
+        for(const index in CoinList){
+          try{
+            const contractone = CoinList[index];
+            const cointypenum = contractone.type % 100 - 1;
+            const coinvaluenum = (contractone.type / 100).toFixed(0);
+            var onecoin = {};
+            const _A_ = "A";
+            onecoin.id = contractone.id;
+            onecoin.owner = contractone.owner;
+            onecoin.contracttype = contractone.type;
+            onecoin.cointype = this.state.coins[cointypenum].cointype;
+            onecoin.value = this.state.coinvalues[cointypenum][coinvaluenum];
+            onecoin.number = contractone.number;
+            onecoin.coinnumber = onecoin.cointype + String.fromCharCode(parseInt(_A_.charCodeAt()) + parseInt(coinvaluenum)) + onecoin.number;
+            onecoin.type = this.state.cointypes[onecoin.cointype].types[coinvaluenum].type;
+            onecoin.url = this.state.cointypes[onecoin.cointype].types[coinvaluenum].coinurl;
+            existcoinlist.push(onecoin);
+          }catch(err){
+            console.error('Failed to fetch coins', err);
+          }
+        }
+        console.log("existcoinlist");
+        console.log(existcoinlist);
+        commit('setCoins', existcoinlist);
+      } catch (err) {
+        console.error('Failed to fetch coins', err);
+      }
     },
   },
 });

@@ -3,21 +3,18 @@
       <div class="my-stat">
         <div class="logined" v-if="isLogined">
           <p class="username">{{currentUsername}}</p>
-          <!-- <p class="my-balance">
-            {{eosBalance}}
-            <span class="coin-symbol">EOS</span>
-          </p>
-          <p class="my-balance">
-            {{coinBalance}}
-            <span class="coin-symbol">游戏币</span>
-          </p> -->
-          <Input v-model="input_name" placeholder="空投目标"/>
-          <Input v-model="input_amount" placeholder="空投数量"/>
-          <Button type="success" long @click="airdrop">空投</Button>
+          <Input v-model="input_name" placeholder="增发目标"/>
+          <Input v-model="input_amount" placeholder="增发数量"/>
+          <Button type="success" long @click="issue">增发</Button>
+        </div>
+        <br/>
+        <div class="logined" v-if="isLogined">
+          <Input v-model="input_coin_number" placeholder="解锁币编号"/>
+          <Button type="success" :loading="cantunfreeze" long @click="unfreeze" ref="unlockbutton">解锁</Button>
         </div>
         <div class="not-login-yet" v-else>
          <Row>
-            <Col span="14"><p class="login-notification">即刻登录，<br/>空投ccc！</p></Col>
+            <Col span="14"><p class="login-notification">请使用chainbankeos<br/>账号登录。</p></Col>
             <Col span="10">
               <Button class="login-btn" ghost type="text"
               @click="loginWithWallet"
@@ -38,7 +35,7 @@ import API, { currentEOSAccount } from '../../api/scatter';
 export default {
   name: 'My-Banner',
   computed: {
-    ...mapState(['scatterAccount', 'balances', 'isScatterConnected']),
+    ...mapState(['existcoins', 'scatterAccount', 'balances', 'isScatterConnected']),
     ...mapGetters(['currentUsername']),
     eosBalance() {
       return this.balances.eos.slice(0, -4);
@@ -51,20 +48,74 @@ export default {
     },
   },
   created() {
-
+    var self = this;
+    this.cantunfreeze = true;
+    this.getCoins().then(() => {
+      const allcoins = this.existcoins;
+      for(const coinid in allcoins){
+        const coin = allcoins[coinid];
+        if(coin.coinnumber == "ADAA628"){
+          console.log('founded');
+        }
+      }
+      console.log(self.$refs.unlockbutton);
+      self.cantunfreeze = false;
+    });
   },
   methods: {
     ...mapActions([
       'connectScatterAsync',
       'suggestNetworkAsync',
       'loginScatterAsync',
-      'logoutScatterAsync']),
+      'logoutScatterAsync',
+      'getCoins']),
     toUserPage(username) {
       this.$router.push({ name: 'User', params: { username } });
     },
-    async airdrop(){
+    async issue(){
+      try{
+        await API.issue({name: this.input_name, amount: this.input_amount});
+      } catch (error) {
+        console.error(error);
+        let msg;
+        if (error.message === undefined) {
+          msg = JSON.parse(error).error.details[0].message;
+        } else {
+          msg = error.message;
+        }
+        this.$Modal.error({
+          title: '增发错误',
+          content: `Transaction failed: ${msg}`,
+        });
+      }
       console.log(this.input_name + this.input_amount);
-      await API.airdrop({name: this.input_name, amount: this.input_amount});
+    },
+    async unfreeze(){
+      var frozenid = 0;
+      const allcoins = this.existcoins;
+      for(const coinid in allcoins){
+        const coin = allcoins[coinid];
+        if(coin.coinnumber == this.input_coin_number){
+          frozenid = coin.id;
+          console.log('founded' + coin.id);
+        }
+      }
+      try{
+        await API.unfreeze({coinid: frozenid});
+      } catch (error) {
+        console.error(error);
+        let msg;
+        if (error.message === undefined) {
+          msg = JSON.parse(error).error.details[0].message;
+        } else {
+          msg = error.message;
+        }
+        this.$Modal.error({
+          title: '解冻错误',
+          content: `Transaction failed: ${msg}`,
+        });
+      }
+      console.log(this.input_name + this.input_amount);
     },
     async loginWithWallet() {
       if (!this.isScatterConnected) {
@@ -94,14 +145,15 @@ export default {
   data: () => ({
     input_amount: '',
     input_name: '',
+    input_coin_number: '',
+    cantunfreeze: true
   }),
 };
 </script>
 
 <style scoped>
-.my-banner {
+.my-banner { 
   margin: auto;
-  margin-top: -32px;
   text-align: center;
   max-width: 335px;
   /* max-height: 76px; */
