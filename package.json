@@ -18,7 +18,7 @@
     "iview": "^3.3.0",
     "mavon-editor": "^2.7.0",
     "moment": "^2.24.0",
-    "qs": "^6.6.0",
+    "qs": "^6.6.1",
     "query-string": "^6.4.0",
     "register-service-worker": "^1.5.2",
     "request": "^2.88.0",
